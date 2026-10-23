@@ -1,0 +1,1 @@
+{"name":"futbol-en-bloques","version":"1.0.0","description":"Fútbol en Bloques - Liga Colombiana (servidor de salas)","scripts":{"start":"node server.js"},"engines":{"node":">=18"}}
