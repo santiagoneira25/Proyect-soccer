@@ -9,7 +9,7 @@ const srv = http.createServer((q, r) => {
     r.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); r.end(d);
   });
 });
-const wss = new WebSocketServer({ server: srv }), rooms = new Map(), RELAY = ['st', 'in', 'start', 'end'];
+const wss = new WebSocketServer({ server: srv }), rooms = new Map(), RELAY = ['st', 'in', 'start', 'end', 'team'];
 const code = () => { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; let c; do { c = Array.from({ length: 4 }, () => a[Math.random() * a.length | 0]).join(''); } while (rooms.has(c)); return c; };
 const send = (w, o) => { if (w && w.readyState === 1) w.send(JSON.stringify(o)); };
 wss.on('connection', ws => {
