@@ -568,7 +568,7 @@ function spw(v){PWON=v;try{localStorage.setItem('hl_pw',v)}catch(e){}mset()}
 const olsend=o=>{if(WS&&WS.readyState==1)WS.send(JSON.stringify(o))},olst=t=>{const e=$('ols');if(e)e.textContent=t};
 const IS='width:92%;padding:8px;border-radius:8px;border:2px solid #120e26;font:600 14px system-ui';
 function olmenu(){
- endOv('<h2>Online</h2><p class=k>Código de sala (solo para unirte)</p><input id=olk maxlength=4 placeholder="ABCD" style="'+IS+';font-size:20px;text-align:center;text-transform:uppercase"><p id=ols class=k>El anfitrión elige los equipos en el menú y crea la sala. Quien se une juega con el equipo RIVAL.</p>','<button onclick=olc()>Crear sala</button><button onclick=olj()>Unirse</button><button onclick=olquit()>Volver</button>')}
+ endOv('<h2>Online</h2><p class=k>Código de sala (solo para unirte)</p><input id=olk maxlength=4 placeholder="ABCD" style="'+IS+';font-size:20px;text-align:center;text-transform:uppercase"><p class=k>Tu equipo: <b>'+nm(T1())+'</b></p><p id=ols class=k>Cada quien juega con el equipo que tenga elegido en su menú principal.</p>','<button onclick=olc()>Crear sala</button><button onclick=olj()>Unirse</button><button onclick=olquit()>Volver</button>')}
 function olconn(cb){if(!location.protocol.startsWith('http'))return olst('Abre el juego desde el enlace de tu servidor para jugar online');const u=(location.protocol=='https:'?'wss://':'ws://')+location.host;olst('Conectando… (Render puede tardar ~30 s en despertar)');
  try{WS=new WebSocket(u)}catch(e){return olst('URL inválida')}const w=WS;
  w.onopen=()=>{w.pg=setInterval(()=>olsend({t:'ping'}),25000);cb()};w.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}olmsg(d)};
@@ -577,9 +577,10 @@ function olc(){olconn(()=>olsend({t:'create'}))}
 function olj(){const c=($('olk').value||'').trim().toUpperCase();if(c.length<4)return olst('Escribe el código de 4 letras');olconn(()=>olsend({t:'join',c}))}
 function olquit(){const w=WS;WS=null;OL=null;try{w&&w.close()}catch(e){}mclose();menu()}
 function olleft(){const had=OL;OL=null;if(M&&(M.ol||M.gu)&&!M.pa){M.pa=1;M.gu=0;cancelAnimationFrame(raf);AU.mode('menu');$('tc').hidden=$('pb').hidden=1;endOv('<h2>Tu amigo se desconectó</h2>','<button onclick=olquit()>Menú</button>')}else if(had)olst('La conexión se cerró')}
-function olhost(){endOv('<h2>Online · Sala '+OL.c+'</h2><p class=k>'+nm(T1())+' (tú) vs '+nm(T2())+' (tu amigo)</p><p id=ols class=k>¡Tu amigo se unió!</p>','<button onclick=olstart()>Empezar</button><button onclick=olquit()>Cancelar</button>')}
+function olb(){if(!OL||OL.o==null)return null;const a=T1();return OL.o==a?(a>0?a-1:a+1):OL.o}
+function olhost(){const b=olb(),same=OL.o!=null&&OL.o==T1();endOv('<h2>Online · Sala '+OL.c+'</h2><p class=k>'+nm(T1())+' (tú) vs '+(b==null?'…':nm(b)+' (tu amigo)')+'</p><p id=ols class=k>'+(b==null?'Tu amigo se unió, esperando su equipo…':same?'Eligieron el mismo equipo: se cambió el de tu amigo.':'¡Todo listo!')+'</p>','<button onclick=olstart()'+(b==null?' disabled':'')+'>Empezar</button><button onclick=olquit()>Cancelar</button>')}
 function olend(a,b,x,y,h){endOv(`<h2>FINAL</h2><div class=sc>${nm(a)} ${x} - ${y} ${nm(b)}</div>`,(h?'<button onclick=olstart()>Revancha</button>':'')+'<button onclick=olquit()>Menú</button>')}
-function olstart(){if(!OL||OL.r!='h'||!OL.p)return;const a=T1(),b=T2();olsend({t:'start',a,b});
+function olstart(){if(!OL||OL.r!='h'||!OL.p)return;const a=T1(),b=olb();if(b==null)return;olsend({t:'start',a,b});
  play(a,b,1,(x,y)=>{olsend({t:'end',x,y,a,b});olend(a,b,x,y,1)});M.ol=1;M.p[1].ai=0;M.p[1].rk={l:0,r:0,j:0,k:0};$('pb').hidden=1}
 function olsnap(){const m=M,n=performance.now();if(n-osl<33)return;osl=n;const r=v=>Math.round(v*10)/10;
  olsend({t:'st',p:m.p.map(p=>[r(p.x),r(p.y),r(p.vx),r(p.vy),r(p.kt),r(p.sc),p.sl>0?1:0]),B:[r(m.B.x),r(m.B.y),r(m.B.rot),r(m.B.w),r(m.B.vx),r(m.B.vy)],R:r(BR),s:m.s,tl:r(m.tl),pz:r(m.pz),fl:m.fl,sc:m.sc,gd:m.gold,pb:m.pb&&[r(m.pb.x),r(m.pb.y),r(m.pb.l),m.pb.k],pj:m.pj.map(q=>[r(q.x),r(q.y)]),pm:m.pm&&[m.pm.s,r(m.pm.t)]})}
@@ -596,7 +597,8 @@ function olapply(d){const m=M;if(!m||!m.gu)return;if(d.s[0]>m.s[0]){AU.goal(0);c
 function olmsg(d){const t=d.t;
  if(t=='created'){OL={r:'h',c:d.c};olst('Sala: '+d.c+' · pásale el código a tu amigo y espera…')}
  else if(t=='peer'&&OL){OL.p=1;olhost()}
- else if(t=='joined'){OL={r:'g'};olst('¡Conectado! Esperando que el anfitrión empiece…')}
+ else if(t=='team'&&OL&&OL.r=='h'){OL.o=d.a;olhost()}
+ else if(t=='joined'){OL={r:'g'};olsend({t:'team',a:T1()});olst('¡Conectado! Esperando que el anfitrión empiece…')}
  else if(t=='err'){olst(d.m);const w=WS;WS=null;OL=null;try{w.close()}catch(e){}}
  else if(t=='left')olleft()
  else if(t=='start'&&OL&&OL.r=='g')olguest(d.a,d.b)
