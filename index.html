@@ -567,9 +567,9 @@ let WS=null,OL=null,osl=0,osi=0;
 function spw(v){PWON=v;try{localStorage.setItem('hl_pw',v)}catch(e){}mset()}
 const olsend=o=>{if(WS&&WS.readyState==1)WS.send(JSON.stringify(o))},olst=t=>{const e=$('ols');if(e)e.textContent=t};
 const IS='width:92%;padding:8px;border-radius:8px;border:2px solid #120e26;font:600 14px system-ui';
-function olmenu(){let u='';try{u=localStorage.getItem('hl_srv')||''}catch(e){}if(!u)u=location.protocol.startsWith('http')?(location.protocol=='https:'?'wss://':'ws://')+location.host:'wss://TU-APP.onrender.com';
- endOv('<h2>Online</h2><p class=k>Servidor</p><input id=olu value="'+u+'" style="'+IS+'"><p class=k>Código de sala (solo para unirte)</p><input id=olk maxlength=4 placeholder="ABCD" style="'+IS+';font-size:20px;text-align:center;text-transform:uppercase"><p id=ols class=k>El anfitrión elige los equipos en el menú y crea la sala. Tú juegas con el equipo RIVAL.</p>','<button onclick=olc()>Crear sala</button><button onclick=olj()>Unirse</button><button onclick=olquit()>Volver</button>')}
-function olconn(cb){const u=$('olu').value.trim();try{localStorage.setItem('hl_srv',u)}catch(e){}olst('Conectando… (Render puede tardar ~30 s en despertar)');
+function olmenu(){
+ endOv('<h2>Online</h2><p class=k>Código de sala (solo para unirte)</p><input id=olk maxlength=4 placeholder="ABCD" style="'+IS+';font-size:20px;text-align:center;text-transform:uppercase"><p id=ols class=k>El anfitrión elige los equipos en el menú y crea la sala. Quien se une juega con el equipo RIVAL.</p>','<button onclick=olc()>Crear sala</button><button onclick=olj()>Unirse</button><button onclick=olquit()>Volver</button>')}
+function olconn(cb){if(!location.protocol.startsWith('http'))return olst('Abre el juego desde el enlace de tu servidor para jugar online');const u=(location.protocol=='https:'?'wss://':'ws://')+location.host;olst('Conectando… (Render puede tardar ~30 s en despertar)');
  try{WS=new WebSocket(u)}catch(e){return olst('URL inválida')}const w=WS;
  w.onopen=()=>{w.pg=setInterval(()=>olsend({t:'ping'}),25000);cb()};w.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}olmsg(d)};
  w.onclose=()=>{clearInterval(w.pg);if(WS===w){WS=null;olleft()}};w.onerror=()=>olst('No se pudo conectar al servidor')}
